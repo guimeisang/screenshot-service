@@ -4,12 +4,18 @@
   "description": "puppeteer_app",
   "main": "app.js",
   "scripts": {
-    "start": "nodemon index.js",
+    "start:local": "cross-env NODE_ENV=local nodemon index.js",
+    "start:dev": "cross-env NODE_ENV=dev nodemon index.js",
+    "start:test": "cross-env NODE_ENV=test nodemon index.js",
+    "start:prod": "cross-env NODE_ENV=prod nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "nodemonConfig": {
-    "ignore": ["pdf", "fullscreenshot"]
-  }, 
+    "ignore": [
+      "pdf",
+      "fullscreenshot"
+    ]
+  },
   "author": "s1@jiguang.in",
   "license": "MIT",
   "dependencies": {
@@ -24,6 +30,7 @@
     "webpack": "^4.26.0"
   },
   "devDependencies": {
+    "cross-env": "^7.0.2",
     "nodemon": "^2.0.5"
   }
 }

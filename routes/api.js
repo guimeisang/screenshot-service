@@ -11,13 +11,14 @@ const fullScreenshot = require('../service/fullScreenshot')
 const pdf = require('../service/pdf')
 const render = require('../service/render')
 const file2zip = require('../service/file2zip')
+const resumeScreenshot = require('../service/resumeScreenshot')
 
 
 
 route.use(async (ctx, next)=>{
 	// Assert url 
 	let url = ctx.query.url || ctx.request.body.url;
-	if( ctx.path !== "/downLoadZip") {
+	if( ["/screenshot", "/screenshot/full", "/pdf", "/render"].indexOf(ctx.path) != -1 ) {
 		ctx.assert(url, 400, "Url can't be null");
 	}
 	// set url
@@ -44,7 +45,7 @@ route.all('screenshot/full',async ctx => {
 	// Full screenshot
 	let filename = `${uuidv4()}.png`;
 	fullScreenshot(url,filename)
-	ctx.body = {status: 200 ,error: '',message:'success fullscreenshot',type:'fullscreenshot',filename:filename};
+	ctx.body = {status: 200 ,error: '',message:'success fullscreenshot',type:'fullscreenshot', filename: filename};
 });
 
 route.all('pdf',async ctx => {
@@ -55,7 +56,7 @@ route.all('pdf',async ctx => {
 	let width = ctx.query.width || ctx.request.body.width || 1920;
 	let height = ctx.query.height || ctx.request.body.height || 1080;
 	pdf(url,parseInt(width),parseInt(height),filename,format)
-	ctx.body = {status: 200 , error: '', message:'success pdf', type:'pdf', filename:filename};
+	ctx.body = {status: 200 , error: '', message:'success pdf', type:'pdf', filename: filename};
 });
 
 
@@ -68,18 +69,30 @@ route.all('render', async ctx => {
 
 });
 
-// 增加下载zip的接口
+// 增加简历批量下载截图接口
 route.all('downLoadZip', async ctx => {
-	let fileInfos = ctx.query.fileInfos || ctx.request.body.fileInfos;
-	let type = ctx.query.type || ctx.request.body.type;
-	let fileNames = [], filePaths = [];
-	console.log("downLoadZip params: ", typeof(fileInfos), fileInfos)
-	fileInfos.forEach(item => {
-		fileNames.push(`${item.name}.${type}`)
-		filePaths.push(`/${type}/${item.userUuid}`)
+	let userUuids = ctx.query.userUuids || ctx.request.body.userUuids; // 用户uuid
+	let type = ctx.query.type || ctx.request.body.type; // 文件类型
+	let projectName = ctx.query.projectName || ctx.request.body.projectName; // 项目名称
+	let userUuidArr = userUuids.split(";"), filePaths = [], fileNames = [];
+	console.log('userUuidArr: ', userUuidArr)
+	// 特殊处理下仅仅一个uuid的时候
+	if(userUuidArr.length == 1) {
+		userUuidArr[0].slice(1).slice(0, -1)
+	}
+	userUuidArr.forEach((item) => {
+		fileNames.push(item + '.' + type)
+		filePaths.push(projectName + "/" + type + "/" + item + "." + type)
 	});
 	let zipBuffer = await file2zip([fileNames], [filePaths])
 	ctx.body = zipBuffer;
+})
+
+// 增加简历截图接口
+route.post('resumeScreenshot', async ctx => {
+	let { resumeInfos, filename, fileType, projectName } = ctx.request.body
+	await resumeScreenshot(resumeInfos, filename, fileType, projectName)
+	ctx.body = { status: 200, error:'', message: "success",  type:'pdf', filename: filename, projectName: projectName}
 })
 
 

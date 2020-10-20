@@ -3,18 +3,20 @@ const fs = require('fs')
 const path = require('path')
 const rootPath = path.join(__dirname, '../')
 
-async function file2zip(_fileName, _filePath) {
+async function file2zip(fileNameArr, filePathArr) {
+    console.log(`[puppeteer.app.file2zip] 2 DEBUG: get file by zip  fileNameArr: ${fileNameArr}`, 'filePathArr: ', filePathArr);
+
     var zip = new JSZip()
-    _filePath = ['/pdf/2a0d97e3-6377-47a1-a1c1-b81eda0c3e90.pdf', '/pdf/6b5ff30e-fc10-4514-bba2-d28724702675.pdf']
-    _fileName = ['2a0d97e3-6377-47a1-a1c1-b81eda0c3e90.pdf', '6b5ff30e-fc10-4514-bba2-d28724702675.pdf']
-    for(var i = 0; i < _filePath.length; i++) {
+
+    for(var i = 0; i < fileNameArr.length; i++) {
         // 允许部分简历可以下载不下来
         try {
-            let buffer = Buffer.from(fs.readFileSync(rootPath + _filePath[i])) // 注意一定要加上rootPath
-            zip.file(_fileName[i], buffer, {base64: true}) // 注意name一定要加上类型，pdf，不然下载的文件会有问题
+            let buffer = Buffer.from(fs.readFileSync(rootPath + filePathArr[i])) // 注意一定要加上rootPath
+            zip.file(fileNameArr[i], buffer, {base64: true}) // 注意name一定要加上类型，pdf，不然下载的文件会有问题
+            console.log(`[puppeteer.app.file2zip] 2 DEBUG: get file by zip successfully fileNameArr: ${fileNameArr[i]}`);
         } catch (error) {
             // TODO 将不能下载的简历收集一下，并且返回不能下载的名单回去
-            console.log(error)
+            console.log(`[puppeteer.app.file2zip] 3 ERROR: get file by zip failed Error:${error}`);
         }
     }
 
